@@ -1,0 +1,60 @@
+version: "3.3"
+
+networks:
+  aromal_network:
+    driver: bridge
+
+
+services:
+  mongo-store:
+    networks:
+      - aromal_network
+
+    image: mongo
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+      - DB_NAME=codingchallenge
+      - DB_USER=aromal
+      - DB_PASSWORD=bubblegum
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
+      - mongo-vol:/data/db
+    command: mongod
+
+  server1:
+    networks:
+      - aromal_network
+    container_name: server1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8001:8001
+    command:
+      - start-server1
+    depends_on:
+      - mongo-store
+
+  server2:
+    networks:
+      - aromal_network
+    container_name: server2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8002:8002
+    command:
+      - start-server2
+
+    depends_on:
+      - mongo-store
+
+volumes:
+  mongo-vol:
+
+
